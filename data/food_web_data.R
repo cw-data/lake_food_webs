@@ -17,7 +17,7 @@ i_data <- read.csv("data/source/i_data.csv", header = TRUE)
 p_data <- read.csv("data/source/p_data.csv", header = TRUE)
 
 clean_a_data <- a_data[, c(
-    "Tube_ID"
+    "sample_id"
     ,"Collected_date"
     ,"Collected_time"
     ,"Lat"
@@ -38,7 +38,7 @@ clean_a_data <- a_data[, c(
     ,"Out_oven_date"
     ,"Empty."
     )] %>%
-    rename(tube_id = Tube_ID) %>%
+    rename(sample_id = sample_id) %>%
     rename(collected_date = Collected_date) %>%
     rename(collected_time = Collected_time) %>%
     rename(latitude = Lat) %>%
@@ -89,6 +89,7 @@ clean_a_data <- a_data[, c(
         ,TRUE ~collected_time
     )) %>%
     mutate(collected_datetime = paste0(collected_date, " ", collected_time)) %>%
+    mutate(collected_datetime = as.POSIXct(collected_datetime, format="%Y-%m-%d %H:%M", tz="MST")) %>%
     mutate(collected_date = NULL) %>%
     mutate(collected_time = NULL) %>%
     mutate(empty = case_when(
@@ -104,9 +105,15 @@ clean_a_data <- a_data[, c(
         ,is.na(empty) ~ "FALSE"
         ,TRUE ~ paste(empty, "problem")
     )) %>%
+    mutate(empty = as.logical(empty)) %>%
     mutate(individuals_count = case_when(
         individuals_count == "0" ~ NA
         ,TRUE ~ individuals_count
+    )) %>%
+    mutate(tube_box = case_when(
+        sample_id == "BDX" ~ "Whirl pak"
+        ,sample_id == "SZJ" ~ "Whirl pak"
+        ,TRUE ~ tube_box
     )) %>%
     mutate(tube_box = case_when(
         tube_box == "" ~ "NA"
@@ -149,27 +156,36 @@ clean_a_data <- a_data[, c(
     )) %>%
     mutate(method_of_take = case_when(
         method_of_take == "Gill net MFWP" ~ "Gill net MTFWP"
-        ,method_of_take == "Electrofisher" ~ "Backpack electrofisher"
+        ,method_of_take == "Electrofisher" ~ "Backpack electrofisher smith root lr-24"
         ,method_of_take == "Water" ~ "freezing"
         ,depth == 30.0 ~ "Dredge"
-        ,method_of_take == "" ~ "NA"
+        ,method_of_take == "" ~ NA
         ,TRUE ~ method_of_take
     )) %>%
+    mutate(oven_temperature_c = 60) %>%
     mutate(in_oven_datetime = case_when(
         in_oven_datetime == "" ~ "1/1/1900 00:00"
         ,nchar(in_oven_datetime) < 14 ~ paste0(in_oven_datetime, " 00:00")
         ,TRUE ~ in_oven_datetime
-    ))
-    # in_oven_datetime = format(as.POSIXct(in_oven_datetime, "%m/%d/%Y %h:%m"), "%Y-%m-%d %h:%m")) %>%
+    )) %>%
+    mutate(in_oven_datetime = as.POSIXct(in_oven_datetime, format="%m/%d/%Y %H:%M", tz="MST")) %>%
+    mutate(out_oven_datetime = case_when(
+        out_oven_datetime == "" ~ "1/1/1900 00:00"
+        ,out_oven_datetime == "?" ~ "1/1/1900 00:00"
+        ,out_oven_datetime == "FREEZER" ~ "1/1/1900 00:00"
+        ,nchar(out_oven_datetime) < 14 ~ paste0(out_oven_datetime, " 00:00")
+        ,TRUE ~ out_oven_datetime
+    )) %>%
+    mutate(out_oven_datetime = as.POSIXct(out_oven_datetime, format="%m/%d/%Y %H:%M", tz="MST")) %>%
     mutate(total_length_mm = as.integer(total_length_mm)) %>%
-    filter(tube_id != "") %>%
-    filter(!is.na(tube_id)) %>%
+    filter(sample_id != "") %>%
+    filter(!is.na(sample_id)) %>%
     filter(scientific_name != "RM") %>%
     filter(scientific_name != "Unknown") %>%
     filter(common_name != "RM") %>%
     filter(tube_box != "RM") %>%
     select(
-        tube_id
+        sample_id
         ,collected_datetime
         ,lake
         ,latitude
@@ -189,14 +205,26 @@ clean_a_data <- a_data[, c(
         ,out_oven_datetime
         ,empty
     )
-wtf <- final_data %>% filter(
-    method_of_take %in% c("")
-)
 
-name_check <- data.frame(common_name = unique(final_data$common_name), sci_name = NA)
-for(i in 1:nrow(name_check)){
-    name_check$sci_name[i] <- length(unique(subset(final_data, final_data$common_name == name_check$common_name[i])$scientific_name))
-}
+clean_a_data %>% count(tube_id) %>% filter(n>1) %>% arrange(., desc(n))
+n_distinct(clean_a_data$tube_id)
+nrow(clean_a_data)
+
+# step 1: clean `a_data`
+# step 2: repeat the same cleaning on `i_data`
+# step 3: add isotope columns from `clean_i_data` and `clean_p_data` to `clean_a_data` and add NA values to those columns
+#   e.g., clean_a_data$d13c <- NA
+#   e.g., clean_a_data$d13c_baseline_mean <- NA
+# step 4: left join `clean_p_data` to `clean_i_data` by `isotope_id`
+    # clean_i_data <- dplyr::left_join(clean_i_data, clean_p_data, by="isotope_id")
+# step 5: update colnames in clean_a_data to match clean_i_data
+#   clean_a_data <- select(colnames(clean_i_data))
+# step 6: filter repeated rows from clean_a_data 
+#   clean_a_data <- clean_a_data %>% filter(tube_id != clean_i_data$tube_id)
+# step 7: rbind clean_a_data to clean_i_data
+#   f_data <- rbind(clean_i_data, clean_a_data)
+# step 8: write csv of f_data
+
 
 clean_i_data <-i_data[,c(
     "Tube_ID"
@@ -211,7 +239,7 @@ clean_i_data <-i_data[,c(
     ,"Analysis.Number"
     ,"Internal.ID"
 )] %>%
-    rename(tube_id = Tube_ID) %>%
+    rename(sample_id = Tube_ID) %>%
     rename(isotope_id = Davis_ID_long) %>%
     rename(d13c = d13C) %>%
     rename(d15n = d15N) %>%
@@ -223,8 +251,29 @@ clean_i_data <-i_data[,c(
     rename(analysis_number = Analysis.Number) %>%
     rename(lab_id = Internal.ID)
 
+clean_i_data %>% count(tube_id) %>% filter(n>1) %>% arrange(., desc(n))
+
+n_distinct(clean_i_data$sample_id)
+n_distinct(clean_i_data$isotope_id)
+nrow(clean_i_data)
+
+nrow(clean_a_data) == n_distinct(clean_a_data$sample_id)
+n_distinct(clean_a_data$sample_id)
+nrow(clean_a_data)
+
+
+
+
+mytest <- clean_i_data %>%
+    subset(tube_id == "19-075")
+mytest2 <- clean_a_data %>%
+    subset(tube_id == "19-075")
+
+# missing_ids <- dplyr::anti_join(clean_i_data, clean_a_data, by="sample_id")
+# nrow(missing_ids)
+
 clean_p_data <- p_data[,c(
-    "Tube_ID"
+    "Davis_ID_long"
     ,"d13C_baseline"
     ,"d13C_base_se"
     ,"d15N_baseline"
@@ -232,17 +281,21 @@ clean_p_data <- p_data[,c(
     ,"d13C_corr"
     ,"d15N_corr"
 )] %>%
-    rename(tube_id = Tube_ID) %>%
+    rename(isotope_id = Davis_ID_long) %>%
     rename(d13c_baseline_mean = d13C_baseline) %>%
     rename(d13c_baseline_standard_error = d13C_base_se) %>%
     rename(d15n_baseline_mean = d15N_baseline) %>%
     rename(d15n_baseline_standard_error = d15N_base_se) %>%
     rename(d13c_baseline_corrected = d13C_corr) %>%
     rename(d1nN_baseline_corrected = d15N_corr)
-    
+   
+n_distinct(clean_p_data$isotope_id) 
+nrow(clean_p_data) 
+# missing_ids <- dplyr::anti_join(clean_p_data, clean_i_data, by="sample_id")
+# nrow(missing_ids)
 
-f_data <- dplyr::left_join(clean_a_data, clean_i_data, by="tube_id")
-f_data <- dplyr::left_join(f_data, clean_p_data, by="tube_id")
+f_data <- dplyr::left_join(clean_a_data, clean_i_data, by="sample_id")
+f_data <- dplyr::left_join(f_data, clean_p_data, by="isotope_id")
 
 #write as csv
 write.csv(f_data, "data/food_web_2020.csv")

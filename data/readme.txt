@@ -1,6 +1,6 @@
 Readme for food_web_2020.csv
 
-Description: A flat-file containing data on all biological specimens collected between 2017 and 2020 to examine the food web structure of Northwestern Montana lakes. One row is one `Tube_ID`, which is either (a) one individual fish (b) all individuals of a macroinvertebrate taxon from a unique combination of lake, transect, depth, date (c) bulk periphyton from a unique combination of lake, date (d) bulk zooplankton from a unique combination of lake, date (e) other (e.g., a handful of larch needles). A subset of the specimens in this flat-file were analyzed for d13C and d15N. As of June 2020, samples were frozen for long-term storage at Flathead Lake Biological Station, Polson, MT.
+Description: A flat-file containing data on all biological specimens collected between 2017 and 2020 to examine the food web structure of Northwestern Montana lakes. One row is one `sample_id`, which is either (a) one individual fish (b) all individuals of a macroinvertebrate taxon from a unique combination of lake, transect, depth, date (c) bulk periphyton from a unique combination of lake, date (d) bulk zooplankton from a unique combination of lake, date (e) other (e.g., a handful of larch needles). A subset of the specimens in this flat-file were analyzed for d13C and d15N. As of June 2020, samples were frozen for long-term storage at Flathead Lake Biological Station, Polson, MT.
 
 Variable abbreviation definitions:
 str: string
@@ -12,12 +12,12 @@ Metadata:
 
 Data fields for all specimens: data that were collected for all specimens, regardless of whether they underwent stable isotope analyses.
 
-tube_id: str. The unique identifier for a sample specimen.
+sample_id: str. The unique identifier for a sample specimen.
 collected_datetime: str. Datetime the specimen was collected. yyyy-mm-dd hh:mm. A date of 1900-01-01 is an unknown or missing date. A time of 00:00 is an unknown or missing time.
 lake: str. Name of the lake from which the specimen was collected.
 latitude: float. Latitude at which the specimen was collected. Decimal degrees north.
 longitude: float. Longitude at which the specimen was collected. Decimal degrees east.
-individuals_count: int. Count of individual specimens preserved in this `Tube_ID`.
+individuals_count: int. Count of individual specimens preserved in this `sample_id`.
 scientific_name: str. Latin name of specimen. Fish species, macroinvertebrate family, bulk zooplankton, bulk periphyton.
 common_name: str. Common name of specimen. Fish species, macroinvertebrate family, bulk zooplankton, bulk periphyton.
 total_length_mm: int. The total length of the fish. Millimeters.
@@ -34,7 +34,7 @@ empty: bool. TRUE indicates the tube contains no more biological material for th
 
 Data fields for isotope samples: lab results from the subset of specimens that were analyzed for d13C and d15N.
 
-isotope_id: str. The unique identifier for an isotope sample. Naming convention: `Tray name`-`Row letter`-`column number`. NA indicates that the `Tube_ID` was not analyzed for d13C and d15N.
+isotope_id: str. The unique identifier for an isotope sample. Naming convention: `Tray name`-`Row letter`-`column number`. NA indicates that the `sample_id` was not analyzed for d13C and d15N.
 sample_weight_mg: float. The mass of biological material sent to the lab for isotope analysis.
 d13c: float. delta 13C of the specimen. Permille.
 d15n: float. delta 15N of the specimen. Permille.
