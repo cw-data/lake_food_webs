@@ -11,6 +11,25 @@ library(dplyr)
 # 2. i_data. The subset of samples in `alldata` that was sent to the lab for stable isotope analysis.
 # 3. p_data. The subset of `i_data` that was analyzed. Same as `i_data` but excludes Lower Quartz lake and Grace lake.
 
+
+# step 1: standardize colnames and values from data sources
+    # 1.a `a_data` --> `clean_a_data`
+    # 1.b `i_data` --> `clean_i_data`
+    # 1.c `p_data` --> `clean_p_data`
+
+# step 4: add isotope columns from `clean_i_data` and `clean_p_data` to `clean_a_data` and add NA values to those columns
+#   e.g., clean_a_data$d13c <- NA
+#   e.g., clean_a_data$d13c_baseline_mean <- NA
+# step 4: left join `clean_p_data` to `clean_i_data` by `isotope_id`
+# clean_i_data <- dplyr::left_join(clean_i_data, clean_p_data, by="isotope_id")
+# step 5: update colnames in clean_a_data to match clean_i_data
+#   clean_a_data <- select(colnames(clean_i_data))
+# step 6: filter repeated rows from clean_a_data 
+#   clean_a_data <- clean_a_data %>% filter(tube_id != clean_i_data$tube_id)
+# step 7: rbind clean_a_data to clean_i_data
+#   f_data <- rbind(clean_i_data, clean_a_data)
+# step 8: write csv of f_data
+
 # sources
 a_data <- read.csv("data/source/a_data.csv", header = TRUE)
 i_data <- read.csv("data/source/i_data.csv", header = TRUE)
@@ -176,6 +195,25 @@ clean_a_data <- a_data[, c(
         ,nchar(out_oven_datetime) < 14 ~ paste0(out_oven_datetime, " 00:00")
         ,TRUE ~ out_oven_datetime
     )) %>%
+    mutate(
+        sample_id = case_when(
+            sample_id == 'BWA' & scientific_name == 'Periphyton' ~ 'BWA_15ml' # a 15ml and a 1.5ml sample were given the same sample_id
+            ,TRUE ~ sample_id
+        )
+     )%>%
+    mutate(
+        lake = case_when(
+            lake == 'Mcdonald' ~ 'McDonald' # a 15ml and a 1.5ml sample were given the same sample_id
+            ,TRUE ~ lake
+        )
+     )%>%
+    mutate(
+        collected_datetime = case_when(
+            sample_id == 'IACP' ~ as.POSIXct('2019-07-17 00:00', format="%Y-%m-%d %H:%M", tz="MST") # deep-water chironomids were collected on the same date as zooplankton
+            ,sample_id == 'IACQ' ~ as.POSIXct('2019-06-19 00:00', format="%Y-%m-%d %H:%M", tz="MST") # deep-water chironomids were collected on the same date as zooplankton
+            ,TRUE ~ collected_datetime
+        )
+     )%>%
     mutate(out_oven_datetime = as.POSIXct(out_oven_datetime, format="%m/%d/%Y %H:%M", tz="MST")) %>%
     mutate(total_length_mm = as.integer(total_length_mm)) %>%
     filter(sample_id != "") %>%
@@ -204,31 +242,15 @@ clean_a_data <- a_data[, c(
         ,oven_temperature_c
         ,out_oven_datetime
         ,empty
+    ) %>%
+    filter(
+        !duplicated(sample_id)
     )
-
-clean_a_data %>% count(tube_id) %>% filter(n>1) %>% arrange(., desc(n))
-n_distinct(clean_a_data$tube_id)
-nrow(clean_a_data)
-
-# step 1: clean `a_data`
-# step 2: repeat the same cleaning on `i_data`
-# step 3: add isotope columns from `clean_i_data` and `clean_p_data` to `clean_a_data` and add NA values to those columns
-#   e.g., clean_a_data$d13c <- NA
-#   e.g., clean_a_data$d13c_baseline_mean <- NA
-# step 4: left join `clean_p_data` to `clean_i_data` by `isotope_id`
-    # clean_i_data <- dplyr::left_join(clean_i_data, clean_p_data, by="isotope_id")
-# step 5: update colnames in clean_a_data to match clean_i_data
-#   clean_a_data <- select(colnames(clean_i_data))
-# step 6: filter repeated rows from clean_a_data 
-#   clean_a_data <- clean_a_data %>% filter(tube_id != clean_i_data$tube_id)
-# step 7: rbind clean_a_data to clean_i_data
-#   f_data <- rbind(clean_i_data, clean_a_data)
-# step 8: write csv of f_data
-
 
 clean_i_data <-i_data[,c(
     "Tube_ID"
     ,"Davis_ID_long"
+    ,'Isotope.sample.weight..mg.'
     ,"d13C"
     ,"d15N"
     ,"Total.C..µg."
@@ -243,34 +265,22 @@ clean_i_data <-i_data[,c(
     rename(isotope_id = Davis_ID_long) %>%
     rename(d13c = d13C) %>%
     rename(d15n = d15N) %>%
-    rename(total_c = Total.C..µg.) %>%
-    rename(total_n = Total.N..µg.) %>%
+    rename(sample_net_weight_mg = Isotope.sample.weight..mg.) %>%
+    rename(total_c_ug = Total.C..µg.) %>%
+    rename(total_n_ug = Total.N..µg.) %>%
     rename(c_comment = C.Comment) %>%
     rename(n_comment = N.Comment) %>%
     rename(type_of_material = Type.of.Material) %>%
     rename(analysis_number = Analysis.Number) %>%
-    rename(lab_id = Internal.ID)
+    rename(lab_id = Internal.ID) %>%
+    mutate(
+        sample_id = case_when(
+            sample_id == 'BWA' & isotope_id == 'GOLF-B-07' ~ 'BWA_15ml' # a 15ml and a 1.5ml sample were given the same sample_id
+            ,TRUE ~ sample_id
+        )
+    )
 
-clean_i_data %>% count(tube_id) %>% filter(n>1) %>% arrange(., desc(n))
-
-n_distinct(clean_i_data$sample_id)
-n_distinct(clean_i_data$isotope_id)
-nrow(clean_i_data)
-
-nrow(clean_a_data) == n_distinct(clean_a_data$sample_id)
-n_distinct(clean_a_data$sample_id)
-nrow(clean_a_data)
-
-
-
-
-mytest <- clean_i_data %>%
-    subset(tube_id == "19-075")
-mytest2 <- clean_a_data %>%
-    subset(tube_id == "19-075")
-
-# missing_ids <- dplyr::anti_join(clean_i_data, clean_a_data, by="sample_id")
-# nrow(missing_ids)
+# clean_i_data %>% count(sample_id) %>% filter(n>1) %>% arrange(., desc(n))
 
 clean_p_data <- p_data[,c(
     "Davis_ID_long"
@@ -287,15 +297,11 @@ clean_p_data <- p_data[,c(
     rename(d15n_baseline_mean = d15N_baseline) %>%
     rename(d15n_baseline_standard_error = d15N_base_se) %>%
     rename(d13c_baseline_corrected = d13C_corr) %>%
-    rename(d1nN_baseline_corrected = d15N_corr)
+    rename(d15n_baseline_corrected = d15N_corr)
    
-n_distinct(clean_p_data$isotope_id) 
-nrow(clean_p_data) 
-# missing_ids <- dplyr::anti_join(clean_p_data, clean_i_data, by="sample_id")
-# nrow(missing_ids)
+# join to build flattened dataset
+f_data <- dplyr::left_join(clean_i_data, clean_p_data, by="isotope_id")
+f_data <- dplyr::left_join(clean_a_data, f_data, by='sample_id')
 
-f_data <- dplyr::left_join(clean_a_data, clean_i_data, by="sample_id")
-f_data <- dplyr::left_join(f_data, clean_p_data, by="isotope_id")
-
-#write as csv
-write.csv(f_data, "data/food_web_2020.csv")
+# write as csv
+# write.csv(f_data, "data/food_web_2020.csv")
