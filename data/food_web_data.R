@@ -469,15 +469,53 @@ f_data <- f_data %>%
             tube_box %in% c("2019-IA", "2019-AI", "2019-AJ") ~ '1.5'
             ,TRUE ~ tube_size_ml
         )
+    ) %>%
+    rename(fish_total_length_mm = total_length_mm) %>%
+    rename(fish_weight_g = weight_g) %>%
+    rename(lake_d13c_baseline_mean = d13c_baseline_mean) %>%
+    rename(lake_d13c_baseline_standard_error = d13c_baseline_standard_error) %>%
+    rename(lake_d15n_baseline_mean = d15n_baseline_mean) %>%
+    rename(lake_d15n_baseline_standard_error = d15n_baseline_standard_error) %>%
+    rename(sample_latitude = latitude) %>%
+    rename(sample_longitude = longitude) %>%
+    select(
+        sample_id
+        ,tube_box
+        ,tube_size_ml
+        ,isotope_id
+        ,lab_id
+        ,analysis_number
+        ,collected_datetime
+        ,lake
+        ,lake_d13c_baseline_mean
+        ,lake_d13c_baseline_standard_error
+        ,lake_d15n_baseline_mean
+        ,lake_d15n_baseline_standard_error
+        ,sample_latitude
+        ,sample_longitude
+        ,type_of_material
+        ,method_of_take
+        ,preservative
+        ,scientific_name
+        ,common_name
+        ,individuals_count
+        ,depth
+        ,fish_total_length_mm
+        ,fish_weight_g
+        ,in_oven_datetime
+        ,oven_temperature_c
+        ,out_oven_datetime
+        ,empty
+        ,sample_net_weight_mg
+        ,total_c_ug
+        ,total_n_ug
+        ,d13c
+        ,d15n
+        ,d13c_baseline_corrected
+        ,d15n_baseline_corrected
+        ,c_comment
+        ,n_comment
     )
-
-
-
-mysub <- f_data %>%
-    filter(
-        tube_size_ml == "NA"
-    )
-
 
 
 # write as csv
