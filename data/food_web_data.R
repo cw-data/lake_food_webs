@@ -146,6 +146,7 @@ clean_a_data <- a_data[, c(
     mutate(scientific_name = case_when(
         scientific_name == "Phytoplankton" ~ "Seston"
         ,scientific_name == "Potamogeton spp." ~ "Potamogeton"
+        ,scientific_name == "Midge" ~ "Chironomidae"
         ,common_name == "Mosquito" ~ "Culicidae"
         ,common_name == "Moth" ~ "Lepidoptera"
         ,common_name == "Spiny crawler mayfly" ~ "Ephemerellidae"
@@ -159,6 +160,8 @@ clean_a_data <- a_data[, c(
     )) %>%
     mutate(common_name = case_when(
         common_name == "Phytoplankton" ~ "Seston"
+        ,common_name == "Chiromidae" ~ "Midge"
+        ,common_name == "Mosquito" ~ "Mosquito larvae"
         ,scientific_name == "Macrophyte" ~ "Macrophyte"
         ,scientific_name == "Potamogeton" ~ "Pondweed"
         ,scientific_name == "Chironomidae" ~ "Midge"
@@ -302,6 +305,155 @@ clean_p_data <- p_data[,c(
 # join to build flattened dataset
 f_data <- dplyr::left_join(clean_i_data, clean_p_data, by="isotope_id")
 f_data <- dplyr::left_join(clean_a_data, f_data, by='sample_id')
+
+# final wrangling
+f_data <- f_data %>%
+    mutate(individuals_count = case_when(
+        type_of_material == 'Fish' & is.na(individuals_count) ~ 1
+        ,TRUE ~ individuals_count
+        )
+    )
+
+# lookup for f_data$type_of_material
+lookup <- data.frame('name' = unique(f_data$scientific_name))
+lookup$type <- NA
+lookup <-lookup %>%
+    mutate(
+        type = case_when(
+            name == "Richardsonius balteatus" ~ 'Fish'
+            ,name == "Ptychocheilus oregonensis" ~ 'Fish'
+            ,name == "Catostomus catostomus" ~ 'Fish'
+            ,name == "Catostomus macrocheilus" ~ 'Fish'
+            ,name == "Prosopium williamsoni" ~ 'Fish'
+            ,name == "Salvelinus namaycush" ~ 'Fish'
+            ,name == "Salvelinus confluentus" ~ 'Fish'
+            ,name == "Oncorhynchus clarkii lewisi" ~ 'Fish'
+            ,name == "Cottus cognatus" ~ 'Fish'
+            ,name == "Chironomidae" ~ 'Invertebrate'
+            ,name == "Hydrachnidia" ~ 'Invertebrate'
+            ,name == "Culicidae" ~ 'Invertebrate'
+            ,name == "Leptophlebiidae" ~ 'Invertebrate'
+            ,name == "Betula spp." ~ 'Plant'
+            ,name == "Naididae" ~ 'Invertebrate'
+            ,name == "Larix occidentalis" ~ 'Plant'
+            ,name == "Amphipoda" ~ 'Invertebrate'
+            ,name == "Caenidae" ~ 'Invertebrate'
+            ,name == "Isoetes bolanderi" ~ 'Plant'
+            ,name == "Elodea canadensis" ~ 'Plant'
+            ,name == "Hirudinea" ~ 'Invertebrate'
+            ,name == "Notonectidae" ~ 'Invertebrate'
+            ,name == "Limnephilidae" ~ 'Invertebrate'
+            ,name == "Dytiscidae" ~ 'Invertebrate'
+            ,name == "Egg sac" ~ NA
+            ,name == "Chara spp." ~ 'Plant'
+            ,name == "Allochthonous plant" ~ 'Plant'
+            ,name == "Macrophyte" ~ 'Plant'
+            ,name == "Allochthonous animal" ~ NA
+            ,name == "Ranunculus aquatilis" ~ 'Plant'
+            ,name == "Planorbidae" ~ 'Invertebrate'
+            ,name == "Seston" ~ NA
+            ,name == "Apocrita" ~ 'Invertebrate'
+            ,name == "Muscidae" ~ 'Invertebrate'
+            ,name == "Polycentropodidae" ~ 'Invertebrate'
+            ,name == "Leptoceridae" ~ 'Invertebrate'
+            ,name == "Ephemerellidae" ~ 'Invertebrate'
+            ,name == "Picea glauca" ~ 'Plant'
+            ,name == "Populus spp." ~ 'Plant'
+            ,name == "Periphyton" ~ 'Periphyton'
+            ,name == "Zooplankton" ~ 'Invertebrate'
+            ,name == "Phryganeidae" ~ 'Invertebrate'
+            ,name == "Potamogeton" ~ 'Plant'
+            ,name == "Sphaeriidae" ~ 'Invertebrate'
+            ,name == "Perlidae" ~ 'Invertebrate'
+            ,name == "Libellulidae" ~ 'Invertebrate'
+            ,name == "Rhyacophilidae" ~ 'Invertebrate'
+            ,name == "Heptageniidae" ~ 'Invertebrate'
+            ,name == "Simuliidae" ~ 'Invertebrate'
+            ,name == "Drepandocladus spp." ~ 'Plant'
+            ,name == "Mud" ~ NA
+            ,name == "Tabanidae" ~ 'Invertebrate'
+            ,name == "Lepidoptera" ~ 'Invertebrate'
+            ,name == "Hydrophilidae" ~ 'Invertebrate'
+            ,name == "Physidae" ~ 'Invertebrate'
+            ,name == "Coenagrionidae" ~ 'Invertebrate'
+            ,name == "Elmidae" ~ 'Invertebrate'
+            ,name == "Perlodidae" ~ 'Invertebrate'
+            ,name == "Ptychopteridae" ~ 'Invertebrate'
+            ,name == "Cambarus" ~ 'Invertebrate'
+            ,name == "Baetidae" ~ 'Invertebrate'
+            ,name == "Ceratopogonidae" ~ 'Invertebrate'
+            ,name == "Salvelinus confluentus" ~ 'Fish'
+            ,name == "Perca flavescens" ~ 'Fish'
+            ,name == "Esox lucius" ~ 'Fish'
+            ,name == "Coregonus clupeaformis" ~ 'Fish'
+            ,name == "Mylochelius caurinus" ~ 'Fish'
+            ,name == "Oncorhynchus nerka" ~ 'Fish'
+            ,name == "Prosopium coulterii" ~ 'Fish'
+            ,name == "Aeshnidae" ~ 'Invertebrate'
+            ,name == "Hydroptilidae" ~ 'Invertebrate'
+            ,name == "Turbellaria" ~ 'Invertebrate'
+            ,name == "Sialidae" ~ 'Invertebrate'
+            ,name == "Dryopidae" ~ 'Invertebrate'
+            ,name == "Philopotamidae" ~ 'Invertebrate'
+            ,name == "Lymnaeidae" ~ 'Invertebrate'
+            ,name == "Pholcidae" ~ 'Invertebrate'
+            ,name == "Formicidae" ~ 'Invertebrate'
+            ,name == "Apidae" ~ 'Invertebrate'
+            ,name == "Ancylidae" ~ 'Invertebrate'
+            ,name == "Oligochaeta" ~ 'Invertebrate'
+            ,name == "Psephenidae" ~ 'Invertebrate'
+            ,name == "Ephemeridae" ~ 'Invertebrate'
+            ,name == "Mysis" ~ 'Invertebrate'
+            ,name == "Oncorhynchus clarkii bouvieri" ~ 'Fish'
+            ,name == "Gerridae" ~ 'Invertebrate'
+            ,name == "Oncorhynchus mykiss" ~ 'Fish'
+            ,name == "Asellidae" ~ 'Invertebrate'
+            ,name == "Lepomis macrochirus" ~ 'Fish'
+            ,name == "Umbra limi" ~ 'Fish'
+            ,name == "Nepidae" ~ 'Invertebrate'
+            ,name == "Salvelinus fontinalis" ~ 'Fish'
+            ,name == "Lestidae" ~ 'Invertebrate'
+            ,name == "Glossosomatidae" ~ 'Invertebrate'
+            ,name == "Tipulidae" ~ 'Invertebrate'
+        )
+    )
+
+f_data <- dplyr::left_join(f_data, lookup, by=c('scientific_name'='name'))
+f_data$type_of_material<- NULL
+f_data <- f_data %>% rename(type_of_material = type)
+f_data <- f_data %>%
+    mutate(individuals_count = case_when(
+        is.na(individuals_count) & type_of_material == 'Fish' ~ 1
+        ,TRUE ~ individuals_count
+    ))
+# add back individuals_count numbers that mysteriously disappeared
+mysub <- f_data %>%
+    filter(
+        is.na(individuals_count) & type_of_material == 'Invertebrate'
+    )
+unique(mysub$sample_id)
+myothersub <- a_data %>%
+    filter(
+        Tube_ID %in% unique(mysub$sample_id) &
+        !is.na(Count.of.individuals) &
+        Count.of.individuals != ''
+    ) %>%
+    select(Tube_ID, Count.of.individuals) %>%
+    filter(
+        !duplicated(Tube_ID)
+    )
+for(i in 1:nrow(f_data)){
+    f_data$individuals_count[i] <- ifelse(
+        is.na(f_data$individuals_count[i]) & f_data$sample_id[i] %in% myothersub$Tube_ID,
+        subset(myothersub, myothersub$Tube_ID == f_data$sample_id[i])$Count.of.individuals,
+        f_data$individuals_count[i]
+    )
+}
+
+
+
+
+
 
 # write as csv
 # write.csv(f_data, "data/food_web_2020.csv")
