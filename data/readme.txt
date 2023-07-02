@@ -12,7 +12,7 @@ Metadata:
 
 Data fields for all specimens: data that were collected for all specimens, regardless of whether they underwent stable isotope analyses.
 
-sample_id: str. The unique identifier for a sample specimen.
+sample_id: str. The unique identifier for a sample specimen (i.e., an eppendorf or falcon tube containing one or more biological samples). Note: `sample_id` is not a key field because a `sample_id` may contain multiple individuals of the same taxon (e.g., many macroinvertebrates), which were used to create multiple `isotope_id`s.
 collected_datetime: str. Datetime the specimen was collected. yyyy-mm-dd hh:mm. A date of 1900-01-01 is an unknown or missing date. A time of 00:00 is an unknown or missing time.
 lake: str. Name of the lake from which the specimen was collected.
 latitude: float. Latitude at which the specimen was collected. Decimal degrees north.
