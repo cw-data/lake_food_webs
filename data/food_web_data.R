@@ -426,12 +426,11 @@ f_data <- f_data %>%
         is.na(individuals_count) & type_of_material == 'Fish' ~ 1
         ,TRUE ~ individuals_count
     ))
-# add back individuals_count numbers that mysteriously disappeared
+# add back `individuals_count` numbers that mysteriously disappeared
 mysub <- f_data %>%
     filter(
         is.na(individuals_count) & type_of_material == 'Invertebrate'
     )
-unique(mysub$sample_id)
 myothersub <- a_data %>%
     filter(
         Tube_ID %in% unique(mysub$sample_id) &
@@ -450,8 +449,34 @@ for(i in 1:nrow(f_data)){
     )
 }
 
+f_data <- f_data %>%
+    mutate(
+        tube_box = case_when(
+            tube_box == 'NA' & sample_id == 'BXA' ~ "2018-B"
+            ,tube_box == 'NA' & sample_id == 'CBZ' ~ "2018-C"
+            ,tube_box == 'NA' & sample_id == 'QES' ~ "2018-Q"
+            ,tube_box == 'NA' & sample_id == 'SES' ~ "2018-S"
+            ,tube_box == 'NA' & sample_id == 'SET' ~ "2018-S"
+            ,tube_box == 'NA' & sample_id == 'SEW' ~ "2018-S"
+            ,tube_box == 'NA' & sample_id == 'SEX' ~ "2018-S"
+            ,tube_box == 'NA' & sample_id == 'SEY' ~ "2018-S"
+            ,tube_box == 'NA' & sample_id == 'FDJ' ~ "2018-F"
+            ,TRUE ~ tube_box
+        )
+    ) %>%
+    mutate(
+        tube_size_ml = case_when(
+            tube_box %in% c("2019-IA", "2019-AI", "2019-AJ") ~ '1.5'
+            ,TRUE ~ tube_size_ml
+        )
+    )
 
 
+
+mysub <- f_data %>%
+    filter(
+        tube_size_ml == "NA"
+    )
 
 
 
