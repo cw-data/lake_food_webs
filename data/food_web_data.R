@@ -17,7 +17,7 @@ i_data <- read.csv("data/source/i_data.csv", header = TRUE)
 p_data <- read.csv("data/source/p_data.csv", header = TRUE)
 
 clean_a_data <- a_data[, c(
-    "sample_id"
+    "Tube_ID"
     ,"Collected_date"
     ,"Collected_time"
     ,"Lat"
@@ -38,7 +38,7 @@ clean_a_data <- a_data[, c(
     ,"Out_oven_date"
     ,"Empty."
     )] %>%
-    rename(sample_id = sample_id) %>%
+    rename(sample_id = Tube_ID) %>%
     rename(collected_date = Collected_date) %>%
     rename(collected_time = Collected_time) %>%
     rename(latitude = Lat) %>%
