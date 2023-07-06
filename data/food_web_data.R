@@ -2,6 +2,7 @@ rm(list=ls())
 graphics.off()
 set.seed(1)
 library(dplyr)
+source("data/lake_baselines.R")
 
 # readme
 # this script parses all of the field and lab data collected for the 2017-2020 "food web study"
@@ -517,6 +518,7 @@ f_data <- f_data %>%
         ,n_comment
     )
 
+# f_data <- back_populate(f_data)
 
 # write as csv
 # write.csv(f_data, "data/food_web_2020.csv")
