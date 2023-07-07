@@ -2,7 +2,7 @@
 
 library(dplyr)
 
-back_populate <- function(f_data){
+generate_baselines <- function(f_data){
     isotope_dataset <- f_data %>%
         select(lake, common_name, scientific_name, type_of_material, d13c, d15n) %>%
         filter(!is.na(d13c) & !is.na(d15n))
@@ -113,7 +113,7 @@ back_populate <- function(f_data){
         rename(lake_d15n_baseline_standard_error = se_d15n) %>%
         select(all_of(before_columns))
     
-    # test that the back-population worked
+    # test that we successfully back-populated baselines
     # f_data %>%
     #     filter(!duplicated(lake)) %>%
     #     select(
@@ -124,6 +124,49 @@ back_populate <- function(f_data){
     #         ,lake_d15n_baseline_standard_error
     #     ) %>%
     #     arrange(., lake)
+    
+    # grab a "before" snapshot so we can measure how different before & after baseline-corrected data are
+    # i.e., make sure that we aren't getting a different result than when we calculated these for the pub
+    # the differences should be tiny (e.g., differences in rounding)
+    # test_df <- f_data %>%
+    #     select(
+    #         sample_id
+    #         ,isotope_id
+    #         ,d13c_baseline_corrected
+    #         ,d15n_baseline_corrected
+    #     )
+    
+    f_data$d13c_baseline_corrected <- f_data$d13c - f_data$lake_d13c_baseline_mean
+    f_data$d15n_baseline_corrected <- f_data$d15n - f_data$lake_d15n_baseline_mean
+    
+    # complete calculations to determine how different before & after baseline-corrected data are
+    # test_df$after_d13c <- f_data$d13c_baseline_corrected
+    # test_df$after_d15n <- f_data$d15n_baseline_corrected
+    # test_df$difference_d13c <- test_df$d13c_baseline_corrected - test_df$after_d13c
+    # test_df$difference_d15n <- test_df$d15n_baseline_corrected - test_df$after_d15n
+    
+    # view differences for d15n
+    # test_df %>%
+    #     select(
+    #         sample_id
+    #         ,isotope_id
+    #         ,difference_d15n
+    #     ) %>%
+    #     arrange(., desc(difference_d15n)) %>%
+    #     # arrange(., difference_d15n) %>%
+    #     top_n(10) # only look at the largest-magnitude differences
+    
+    # view differences for d13c
+    # test_df %>%
+    #     select(
+    #         sample_id
+    #         ,isotope_id
+    #         ,difference_d13c
+    #     ) %>%
+    #     arrange(., desc(difference_d13c)) %>%
+    #     # arrange(., difference_d13c) %>%
+    #     top_n(10) # only look at the largest-magnitude differences
+    
     
     return(f_data)
 }
