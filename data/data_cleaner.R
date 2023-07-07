@@ -42,7 +42,7 @@ a_data_cleaner <- function(a_data){
         rename(tube_box = Tube_box) %>%
         rename(tube_size_ml = Tube_size_ml) %>%
         rename(preservative = Preservative) %>%
-        rename(method_of_take = Method_of_take) %>%
+        rename(method_of_collection = Method_of_take) %>%
         rename(in_oven_datetime = In_oven_date) %>%
         rename(oven_temperature_c = Oven_temp_.C.) %>%
         rename(out_oven_datetime = Out_oven_date) %>%
@@ -146,13 +146,13 @@ a_data_cleaner <- function(a_data){
             ,preservative == "Water" ~ "freezing"
             ,TRUE ~ preservative
         )) %>%
-        mutate(method_of_take = case_when(
-            method_of_take == "Gill net MFWP" ~ "Gill net MTFWP"
-            ,method_of_take == "Electrofisher" ~ "Backpack electrofisher smith root lr-24"
-            ,method_of_take == "Water" ~ "freezing"
+        mutate(method_of_collection = case_when(
+            method_of_collection == "Gill net MFWP" ~ "Gill net MTFWP"
+            ,method_of_collection == "Electrofisher" ~ "Backpack electrofisher smith root lr-24"
+            ,method_of_collection == "Water" ~ "freezing"
             ,depth == 30.0 ~ "Dredge"
-            ,method_of_take == "" ~ NA
-            ,TRUE ~ method_of_take
+            ,method_of_collection == "" ~ NA
+            ,TRUE ~ method_of_collection
         )) %>%
         mutate(oven_temperature_c = 60) %>%
         mutate(in_oven_datetime = case_when(
@@ -210,7 +210,7 @@ a_data_cleaner <- function(a_data){
             ,tube_box
             ,tube_size_ml
             ,preservative
-            ,method_of_take
+            ,method_of_collection
             ,in_oven_datetime
             ,oven_temperature_c
             ,out_oven_datetime
@@ -476,7 +476,7 @@ flatten <- function(clean_a_data, clean_i_data, clean_p_data){
             ,sample_latitude
             ,sample_longitude
             ,type_of_material
-            ,method_of_take
+            ,method_of_collection
             ,preservative
             ,scientific_name
             ,common_name
