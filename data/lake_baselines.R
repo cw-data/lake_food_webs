@@ -94,23 +94,26 @@ generate_baselines <- function(f_data){
         select(
             lake
             ,mean_d13c
-            ,se_d13c
+            # ,se_d13c
             ,mean_d15n
-            ,se_d15n
+            # ,se_d15n
         )
     
     # back-populate the dataset's baseline d13c and d15n for the three lakes that don't already have values
-    before_columns <- colnames(f_data)
-    f_data$lake_d13c_baseline_mean <- NULL
-    f_data$lake_d15n_baseline_mean <- NULL
     f_data$lake_d13c_baseline_standard_error <- NULL
     f_data$lake_d15n_baseline_standard_error <- NULL
+    f_data <- f_data %>%
+        rename(lake_d13c_baseline = lake_d13c_baseline_mean) %>%
+        rename(lake_d15n_baseline = lake_d15n_baseline_mean)
+    before_columns <- colnames(f_data)
+    f_data$lake_d13c_baseline <- NULL
+    f_data$lake_d15n_baseline <- NULL
     
     f_data <- dplyr::left_join(f_data, baselines, by='lake') %>%
-        rename(lake_d13c_baseline_mean = mean_d13c) %>%
-        rename(lake_d15n_baseline_mean = mean_d15n) %>%
-        rename(lake_d13c_baseline_standard_error = se_d13c) %>%
-        rename(lake_d15n_baseline_standard_error = se_d15n) %>%
+        rename(lake_d13c_baseline = mean_d13c) %>%
+        rename(lake_d15n_baseline = mean_d15n) %>%
+        # rename(lake_d13c_baseline_standard_error = se_d13c) %>%
+        # rename(lake_d15n_baseline_standard_error = se_d15n) %>%
         select(all_of(before_columns))
     
     # test that we successfully back-populated baselines
@@ -136,8 +139,8 @@ generate_baselines <- function(f_data){
     #         ,d15n_baseline_corrected
     #     )
     
-    f_data$d13c_baseline_corrected <- f_data$d13c - f_data$lake_d13c_baseline_mean
-    f_data$d15n_baseline_corrected <- f_data$d15n - f_data$lake_d15n_baseline_mean
+    f_data$d13c_baseline_corrected <- f_data$d13c - f_data$lake_d13c_baseline
+    f_data$d15n_baseline_corrected <- f_data$d15n - f_data$lake_d15n_baseline
     
     # complete calculations to determine how different before & after baseline-corrected data are
     # test_df$after_d13c <- f_data$d13c_baseline_corrected
