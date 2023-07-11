@@ -35,4 +35,4 @@ f_data <- flatten(clean_a_data, clean_i_data, clean_p_data)
 f_data <- generate_baselines(f_data)
 
 # write as csv
-# write.csv(f_data, "data/food_web_2020.csv")
+# write.csv(f_data, "data/food_web_2020.csv", row.names=FALSE)
