@@ -216,9 +216,7 @@ a_data_cleaner <- function(a_data){
             ,out_oven_datetime
             ,empty
         ) %>%
-        filter(
-            !duplicated(sample_id)
-        )
+        filter(!duplicated(sample_id))
     
     return(clean_a_data)
 }

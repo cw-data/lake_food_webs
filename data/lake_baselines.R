@@ -99,7 +99,7 @@ generate_baselines <- function(f_data){
             # ,se_d15n
         )
     
-    # back-populate the dataset's baseline d13c and d15n for the three lakes that don't already have values
+    # back-populate the dataset's baseline d13c and d15n
     f_data$lake_d13c_baseline_standard_error <- NULL
     f_data$lake_d15n_baseline_standard_error <- NULL
     f_data <- f_data %>%
