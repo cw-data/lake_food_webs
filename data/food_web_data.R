@@ -2,8 +2,11 @@ rm(list=ls())
 graphics.off()
 set.seed(1)
 library(dplyr)
+library(writexl)
+library(readxl)
 source("data/lake_baselines.R")
 source("data/data_cleaner.R")
+source("data/secchi.R")
 
 # readme
 # this script is a data pipeline that prepares all of the field and lab data collected for the 2017-2020 "food web study" into one analysis-ready data product
@@ -18,7 +21,8 @@ source("data/data_cleaner.R")
 # then it joins source data into a flattened dataframe
 # then it calculates lake-specific isotopic baselines
 # then it calculates baseline-corrected d13c and d15n for each sample
-# finally, it writes the output to csv
+# next, the script reads in a spreadsheet of secchi readings
+# finally, it combines the wrangled sources into a two-sheet xlsx
 
 # sources
 a_data <- read.csv("data/source/a_data.csv", header = TRUE)
@@ -34,5 +38,9 @@ f_data <- flatten(clean_a_data, clean_i_data, clean_p_data)
 # calculate isotope baselines and baseline-correct isotope values
 f_data <- generate_baselines(f_data)
 
-# write as csv
-# write.csv(f_data, "data/food_web_2020.csv", row.names=FALSE)
+# read in secchi data
+secchi <- secchi()
+
+# write output file
+sheets <- list("food_web_data" = f_data, "secchi" = secchi)
+writexl::write_xlsx(sheets, "data/food_web_2020.xlsx")
